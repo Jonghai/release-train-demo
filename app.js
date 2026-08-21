@@ -331,7 +331,6 @@ function railScene(stage, status = "waiting") {
     done: "배포 완료 — done",
   }[status];
   return `<div class="rail-scene">
-    <span class="scene-commit">커밋해시 ${state.round.pointer === "—" ? "7ea91c4" : state.round.pointer}</span>
     <div class="scene-track-area">
       <div class="scene-ties"></div>
       <div class="scene-track-line"></div>
@@ -408,7 +407,7 @@ function renderShell() {
         <div class="sidebar-spacer"></div>
         <div class="runner-state">
           <strong>빌드 실행기</strong>
-          <span><i class="runner-dot ${state.build.status === "building" ? "is-busy" : ""}"></i>${state.build.status === "building" ? "실행 중" : "유휴"} · demo-runner</span>
+          <span>demo-runner</span>
         </div>
       </aside>
       <div class="main-shell">
@@ -540,7 +539,7 @@ function renderConfirmations() {
   return `<div class="collect-page">
     <div class="collect-select"><select aria-label="릴리즈 라운드"><option>${state.round.version} · ${state.round.kind} · 확정 ${confirmed}/${state.modules.length}</option><option>2.8.0 · 정기 배포</option></select></div>
     <section class="collect-header">
-      <div><div class="collect-title"><strong>확정 현황</strong>${badge(state.round.kind.includes("정기") ? "정기" : "긴급", "outline")}<code>${state.round.version}</code>${badge(closed ? "수집 완료 — 빌드 검증 후 승격" : "수집 중", closed ? "success" : "info")}</div><p>라운드 r-${state.round.id} · 생성 ${state.round.created} · 마감 ${state.round.deadline}</p>${closed ? `<p class="closed-guide">빌드가 깨지면 <code>release/${state.round.version}</code>에 수정한 뒤 release 변경 확인으로 감지된 모듈만 재확정합니다.</p>` : ""}</div>
+      <div><div class="collect-title"><strong>확정 현황</strong>${badge(state.round.kind.includes("정기") ? "정기" : "긴급", "outline")}<code>${state.round.version}</code>${badge(closed ? "수집 완료 — 빌드 검증 후 승격" : "수집 중", closed ? "success" : "info")}</div><p>생성 ${state.round.created} · 마감 ${state.round.deadline}</p>${closed ? `<p class="closed-guide">빌드가 깨지면 <code>release/${state.round.version}</code>에 수정한 뒤 release 변경 확인으로 감지된 모듈만 재확정합니다.</p>` : ""}</div>
       <div class="collect-actions"><button class="btn btn-secondary btn-sm" ${closed ? "disabled" : ""}>변경 재확인</button><button class="btn btn-secondary btn-sm" ${closed ? "disabled" : ""}>마감 수정</button><button class="btn btn-secondary btn-sm" ${closed ? "disabled" : ""}>라운드 취소</button><button class="btn btn-primary btn-sm" data-action="close-round" ${closed || pending ? "disabled" : ""}>${closed ? "마감 완료" : "지금 마감"}</button></div>
     </section>
     <div class="usage-notice">${icon("info", 18)}<div>하나의 기능·이슈가 <strong>여러 모듈에 걸쳐 있으면 함께 배포</strong>돼야 합니다 — 확정 전 <strong>관련 기능 담당자와 맞춰</strong> 빠지는 모듈이 없게 확인해주세요.<details><summary>Release Train 사용 안내</summary></details></div></div>
@@ -629,7 +628,7 @@ function renderNewRelease() {
       <label><span>릴리즈 버전</span><input name="version" value="${form.version}" pattern="[0-9]+\\.[0-9]+\\.[0-9]+" required><small>형식은 N.M.P입니다 — release 브랜치와 태그에 사용합니다.</small></label>
       <label><span>확정 마감 시각</span><input type="datetime-local" name="deadline" value="${form.deadline}" required></label>
       <label><span>메모 (선택)</span><textarea name="memo" rows="3" placeholder="이번 배포의 목적이나 확인할 내용을 적어주세요.">${form.memo}</textarea></label>
-      <label class="switch-field"><span><b>마감 후 자동 빌드 시작</b><small>포인터 커밋 생성 직후 빌드 검증을 시작합니다.</small></span><input type="checkbox" name="autoBuild" ${form.autoBuild ? "checked" : ""}></label>
+      <label class="switch-field"><span><b>마감 후 자동 빌드 시작</b><small>마감이 끝나면 빌드 검증을 시작합니다.</small></span><input type="checkbox" name="autoBuild" ${form.autoBuild ? "checked" : ""}></label>
       <div class="form-actions"><button class="btn btn-secondary" type="button" data-route="overview">취소</button><button class="btn btn-primary" type="submit">배포 시작</button></div>
     </form>
   </div>`;
@@ -641,16 +640,16 @@ function renderBuild() {
     <section class="deploy-heading">
       <h2 class="deploy-version">${state.build.version}</h2>
       ${badge(meta.label, meta.tone, true)}
-      <span class="deploy-meta">${state.build.kind} · demo-release-bot — 가상 포트폴리오 데이터</span>
+      <span class="deploy-meta">${state.build.kind}</span>
       <div class="deploy-actions"><button class="btn btn-secondary" data-route="new-release">새 배포 시작</button>${buildButtons()}</div>
     </section>
     ${railScene(state.build.stage, state.build.status)}
     <div class="deploy-grid">
       <section class="deploy-panel progress-panel">
-        <div class="deploy-panel-title"><strong>현재 진행 현황</strong><span>${Math.round((state.build.stage / (STAGES.length - 1)) * 100)}% · 설정 v5</span></div>
+        <div class="deploy-panel-title"><strong>현재 진행 현황</strong><span>${Math.round((state.build.stage / (STAGES.length - 1)) * 100)}%</span></div>
         <div class="current-progress ${state.build.status === "failed" ? "is-failed" : ""}">
           <span class="current-progress-icon">${icon(state.build.status === "failed" ? "x" : "box", 19)}</span>
-          <div><strong>${buildCaption()}</strong><span>${state.build.started === "실행 전" ? "빌드 실행 기록이 아직 없습니다" : `실행 #24 · 시작 ${state.build.started} · ${state.build.elapsed}`}</span></div>
+          <div><strong>${buildCaption()}</strong><span>${state.build.started === "실행 전" ? "빌드 실행 기록이 아직 없습니다" : `시작 ${state.build.started} · ${state.build.elapsed}`}</span></div>
         </div>
         <div>
           <h3 class="log-title">빌드 로그</h3>
@@ -663,11 +662,10 @@ function renderBuild() {
       </section>
       <aside class="deploy-side">
         <section class="deploy-panel">
-          <div class="deploy-panel-title"><strong>빌드 입력</strong><span>§4.1</span></div>
-          <p class="deploy-panel-help">루트 포인터 커밋 + 독립 저장소 모듈의 release HEAD</p>
+          <div class="deploy-panel-title"><strong>빌드 입력</strong></div>
+          <p class="deploy-panel-help">확정한 모듈 조합으로 빌드합니다.</p>
           <div class="input-list">
-            <div class="input-row">${icon("git", 17)}<div><strong>aster-suite release 포인터 커밋</strong><span>서브모듈 SHA 고정</span></div><code>${state.round.pointer === "—" ? "7ea91c4" : state.round.pointer}</code></div>
-            <div class="input-row">${icon("git", 17)}<div><strong>admin-console release HEAD</strong><span>독립 저장소 모듈 · 별도 체크아웃</span></div><code>13bc8f2</code></div>
+            <div class="input-row">${icon("git", 17)}<div><strong>aster-suite 배포 조합</strong><span>확정된 모듈 3개</span></div>${badge("확정 완료", "success")}</div>
           </div>
         </section>
         <section class="deploy-panel">
@@ -696,11 +694,9 @@ function renderArtifacts() {
     ["aster-viewer-2.9.0-20260828174602.zip", "148MB"],
     ["aster-previewer-2.9.0-20260828174831.zip", "172MB"],
   ];
-  const emptyZip = "data:application/zip;base64,UEsFBgAAAAAAAAAAAAAAAAAAAAAAAA==";
   return `<section class="artifact-panel">
-    <div class="artifact-head"><div><h2>배포 산출물</h2><p>빌드 서버가 보관한 결과 파일입니다.</p></div><a class="btn btn-secondary" href="${emptyZip}" download="aster-suite-${state.build.version}-artifacts.zip">모두 다운로드 (zip)</a></div>
-    <div class="artifact-list">${artifacts.map(([name, size]) => `<div><span><code>${name.replace("2.9.0", state.build.version)}</code><small>${size} · 준비됨</small></span><a class="btn btn-secondary btn-sm" href="data:text/plain;charset=utf-8,Portfolio%20demo%20artifact" download="${name.replace("2.9.0", state.build.version)}">다운로드</a></div>`).join("")}</div>
-    <p class="artifact-note">산출물 원본은 빌드 서버가 보관합니다. 일괄 zip에는 게시된 릴리즈 노트도 함께 담깁니다.</p>
+    <div class="artifact-head"><div><h2>배포 산출물</h2><p>빌드 서버가 보관한 결과 파일입니다.</p></div><button class="btn btn-secondary" type="button">모두 다운로드 (zip)</button></div>
+    <div class="artifact-list">${artifacts.map(([name, size]) => `<div><span><code>${name.replace("2.9.0", state.build.version)}</code><small>${size} · 준비됨</small></span><button class="btn btn-secondary btn-sm" type="button">다운로드</button></div>`).join("")}</div>
   </section>`;
 }
 
@@ -719,13 +715,13 @@ function renderHistory() {
     <aside class="history-master"><div class="history-master-title">라운드 (${completedReleases.length})</div><div>${completedReleases.map((item) => `<button class="source-history-item ${item.id === selected.id ? "active" : ""}" data-action="select-history" data-history-id="${item.id}"><div><strong>${item.version}</strong>${badge("배포 확정", "success")}</div><span>${item.kind} · ${item.date}</span><small>확정 ${item.confirmed} · 스킵 ${item.total - item.confirmed} · 모듈 ${item.total}</small></button>`).join("")}</div></aside>
     <article class="history-detail">
       <section class="history-release-head"><div><span>RELEASE</span><div><code>${selected.version}</code>${badge("배포 확정", "success")}${badge(selected.kind.includes("정기") ? "정기" : "수시", "outline")}</div><dl><div><dt>생성 일시</dt><dd>${selected.date} 09:00</dd></div><div><dt>마감 일시</dt><dd>${selected.date} 17:02</dd></div><div><dt>태그 일시</dt><dd>${selected.date} 17:25</dd></div></dl></div><button class="btn btn-secondary btn-sm" data-route="notes">릴리즈 노트 / 태그 보기 ↗</button></section>
-      <section class="history-section"><h3>빌드 검증</h3><div class="build-run-row">${badge("성공", "success", true)}<code>08-14 17:06 ~ 08-14 17:24</code><span>${selected.duration}</span>${badge("설정 v5", "outline")}</div></section>
+      <section class="history-section"><h3>빌드 검증</h3><div class="build-run-row">${badge("성공", "success", true)}<code>08-14 17:06 ~ 08-14 17:24</code><span>${selected.duration}</span></div></section>
       <section class="history-section"><h3>모듈별 반영 내역</h3><div class="source-table-wrap"><table class="source-table"><thead><tr><th>모듈</th><th>상태</th><th>확정 해시</th><th>확정자</th><th>비고</th></tr></thead><tbody>${state.modules.slice(0, 6).map((item) => `<tr><td>${item.name}</td><td>${badge(item.status === "confirmed" ? "확정" : "변경 없음", item.status === "confirmed" ? "success" : "outline")}</td><td><code>${item.status === "docs" ? "—" : item.commit}</code></td><td>${item.status === "confirmed" ? item.team : "—"}</td><td>${item.status === "confirmed" ? "머지 완료" : ""}</td></tr>`).join("")}</tbody></table></div></section>
       <section class="history-section"><h3>감사 · 빌드 타임라인</h3><div class="audit-timeline">${[
-        ["08-14 09:00", "라운드 생성", "r-104", "neutral"],
+        ["08-14 09:00", "배포 생성", "", "neutral"],
         ["08-14 10:24", "확정", "core-runtime", "info"],
         ["08-14 17:02", "마감", "release-bot", "info"],
-        ["08-14 17:06", "빌드 시작", "실행 #24", "neutral"],
+        ["08-14 17:06", "빌드 시작", "", "neutral"],
         ["08-14 17:24", "빌드 성공", selected.duration, "success"],
         ["08-14 17:25", "배포 태그", `v${selected.version}`, "success"],
       ].map((row, index, all) => `<div class="audit-row"><span class="audit-rail"><i class="${row[3]}"></i>${index < all.length - 1 ? "<b></b>" : ""}</span><div><code>${row[0]}</code><strong>${row[1]}</strong><small>${row[2]}</small></div></div>`).join("")}</div></section>
@@ -956,7 +952,7 @@ function closeRound() {
   state.build.status = "waiting";
   state.build.stage = 0;
   render();
-  showToast("마감과 일괄 머지를 완료했습니다", `확정 해시로 release/${state.round.version}을 만들고 루트 포인터 ${state.round.pointer}를 기록했습니다.`, "success");
+  showToast("마감과 일괄 머지를 완료했습니다", `확정한 내용으로 release/${state.round.version} 배포 조합을 만들었습니다.`, "success");
 }
 
 function createRound(formData) {
