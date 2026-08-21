@@ -32,7 +32,6 @@ function icon(name, size = 18) {
 }
 
 const NAV = [
-  { id: "build", label: "배포 상세", icon: "train" },
   { id: "overview", label: "배포 현황", icon: "dashboard" },
   { id: "confirmations", label: "확정 현황", icon: "check" },
   { id: "history", label: "배포 이력", icon: "history" },
@@ -43,13 +42,13 @@ const NAV = [
 const TITLES = {
   overview: ["배포 현황 대시보드", "전체 릴리즈 상태를 한눈에 확인합니다."],
   confirmations: ["커밋 확정 현황", "배포 전 모듈별 커밋을 함께 확인합니다."],
-  build: ["배포 상세", "확정된 커밋이 빌드와 태그로 이어지는 과정을 확인합니다."],
+  build: ["배포 상세", "실시간 배포 진행 현황"],
   history: ["배포 이력", "커밋, 빌드 검증, 태그 생성 기록을 추적합니다."],
   notes: ["릴리즈 노트", "검토를 마치고 게시한 변경 사항을 확인합니다."],
   about: ["프로젝트 설명", "문제와 제약을 운영 가능한 시스템으로 연결한 과정입니다."],
 };
 
-const STAGES = ["확정·마감", "release 조합", "Windows 빌드", "검증", "태그·백머지", "릴리즈 노트", "게시·완료"];
+const STAGES = ["커밋 확정 & 마감", "빌드", "검증", "승격", "백머지", "릴리즈 노트", "게시·완료"];
 
 const modules = [
   {
@@ -301,7 +300,7 @@ function rail(stage, status = "waiting") {
         <span class="train-wheel wheel-back"></span>
         <span class="train-wheel wheel-front"></span>
       </div>
-      ${moving ? `<span class="train-sound">칙칙폭폭 · ${STAGES[stage]} 진행 중</span>` : ""}
+      ${moving ? `<span class="train-sound">${STAGES[stage]} 진행 중</span>` : ""}
       ${STAGES.map((label, index) => {
         let cls = "";
         if (index < stage || status === "done") cls = "done";
@@ -317,20 +316,27 @@ function rail(stage, status = "waiting") {
 
 function railScene(stage, status = "waiting") {
   const sceneIcons = ["check", "box", "server", "shield", "git", "file", "check"];
-  const progress = Math.max(0, Math.min(80, (stage / (STAGES.length - 1)) * 80));
-  // The locomotive is wider than a station marker, so its center stays inside
-  // the scene while the nose still reaches the first and final stations.
-  const trainLeft = 20 + progress * 0.75;
+  const progress = Math.max(0, Math.min(100, (stage / (STAGES.length - 1)) * 100));
+  const trainLeft = progress;
   const moving = status === "building";
   const failed = status === "failed";
+  const movingCaptions = [
+    "커밋 확정 & 마감 진행 중 — 마감되면 빌드가 시작됩니다",
+    "빌드 진행 중 · 3/9 단계",
+    "빌드 통과 — 검증 진행 중",
+    "승격 진행 중 — main 머지 + 태그",
+    "백머지 진행 중 — develop 반영",
+    "릴리즈 노트 초안 생성 · 검토·수정",
+    "배포 완료 — done",
+  ];
   const caption = {
-    waiting: "확정된 커밋을 기준으로 배포 기차가 출발을 기다리고 있습니다.",
-    building: `칙칙폭폭, ${STAGES[stage]} 단계를 지나고 있습니다.`,
-    failed: "Windows 빌드에서 멈췄습니다. 원인을 확인한 뒤 같은 지점에서 다시 출발할 수 있습니다.",
-    done: "릴리즈 노트 게시와 태그 생성을 마치고 마지막 역에 도착했습니다.",
+    waiting: "커밋 확정 & 마감 완료 — 빌드 시작 대기",
+    building: movingCaptions[stage],
+    failed: "빌드 실패 — 담당자 수정 후 재빌드 대기",
+    done: "배포 완료 — done",
   }[status];
   return `<div class="rail-scene">
-    <span class="scene-commit">샘플 커밋 7ea91c4</span>
+    <span class="scene-commit">커밋해시 7ea91c4</span>
     <div class="scene-track-area">
       <div class="scene-ties"></div>
       <div class="scene-track-line"></div>
@@ -338,11 +344,10 @@ function railScene(stage, status = "waiting") {
       <div class="scene-train ${moving ? "is-moving" : ""} ${failed ? "is-failed" : ""}" style="left:${trainLeft}%" aria-hidden="true">
         ${moving ? '<span class="scene-smoke smoke-a"></span><span class="scene-smoke smoke-b"></span><span class="scene-smoke smoke-c"></span>' : ""}
         <div class="freight-car"><span class="freight-window"></span><span class="scene-wheel freight-wheel-a"></span><span class="scene-wheel freight-wheel-b"></span></div>
-        <div class="engine-cab"><span class="engine-window"></span><span class="engine-roof"></span><span class="engine-wheel cab-wheel"></span></div>
-        <div class="engine-boiler"><span class="engine-dome"></span><span class="engine-stack"></span><span class="engine-lamp"></span><span class="engine-cowcatcher"></span><span class="scene-wheel boiler-wheel-a"></span><span class="scene-wheel boiler-wheel-b"></span></div>
+        <div class="scene-engine"><span class="engine-cab"></span><span class="engine-window"></span><span class="engine-boiler"></span><span class="engine-dome"></span><span class="engine-stack"></span><span class="engine-lamp"></span><span class="engine-cowcatcher"></span><span class="scene-wheel cab-wheel"></span><span class="scene-wheel boiler-wheel-a"></span><span class="scene-wheel boiler-wheel-b"></span></div>
       </div>
       ${STAGES.map((label, index) => {
-        const left = 10 + (index / (STAGES.length - 1)) * 80;
+        const left = (index / (STAGES.length - 1)) * 100;
         let cls = "todo";
         if (index < stage || status === "done") cls = "done";
         else if (index === stage && failed) cls = "failed";
@@ -375,7 +380,7 @@ function topbarActions() {
     return `<button class="btn btn-primary hide-mobile" data-action="confirm-all">${icon("check", 16)} 남은 커밋 확정</button>`;
   }
   if (state.route === "build") {
-    return `<button class="btn btn-secondary hide-mobile" data-action="reset-build">${icon("rotate", 16)} 초기화</button>`;
+    return state.build.status === "building" ? `<div class="live-chip"><span class="runner-dot is-busy"></span>실시간</div>` : "";
   }
   return `<a class="btn btn-secondary hide-mobile" href="https://github.com/JongHa11" target="_blank" rel="noreferrer">${icon("github", 16)} GitHub 프로필</a>`;
 }
@@ -387,28 +392,23 @@ function renderShell() {
       ${state.mobileOpen ? '<button class="mobile-backdrop" data-action="close-menu" aria-label="메뉴 닫기"></button>' : ""}
       <aside class="sidebar ${state.mobileOpen ? "open" : ""}" aria-label="주요 메뉴">
         <a class="brand" href="#build" data-route="build">
-          <span class="brand-mark">${icon("train", 16)}</span>
+          <span class="brand-mark">${icon("train", 20)}</span>
           <span class="brand-copy">
-            <span class="brand-name">release train</span>
-            <span class="brand-subtitle">배포 자동화 데모</span>
+            <span class="brand-name">release-Train</span>
+            <span class="brand-subtitle">배포 자동화</span>
           </span>
         </a>
-        <span class="demo-label">Sample data</span>
         <nav class="nav-list">
           ${NAV.map(
-            (item) => `<button class="nav-button" data-route="${item.id}" ${state.route === item.id ? 'aria-current="page"' : ""}>
+            (item) => `<button class="nav-button" data-route="${item.id}" ${(state.route === item.id || (state.route === "build" && item.id === "overview")) ? 'aria-current="page"' : ""}>
               ${icon(item.icon)}<span>${item.label}</span>
             </button>`,
           ).join("")}
         </nav>
         <div class="sidebar-spacer"></div>
-        <div class="sidebar-note">
-          <strong>기존 자원을 연결한 자동화</strong>
-          <span>GitHub, Windows 빌드 서버, 사내 메신저, 로컬 LLM을 하나의 릴리즈 흐름으로 구성했습니다.</span>
-        </div>
         <div class="runner-state">
-          <span class="runner-dot ${state.build.status === "building" ? "is-busy" : ""}"></span>
-          <span>빌드 실행기 · ${state.build.status === "building" ? "실행 중" : "유휴"}</span>
+          <strong>빌드 실행기</strong>
+          <span><i class="runner-dot ${state.build.status === "building" ? "is-busy" : ""}"></i>${state.build.status === "building" ? "실행 중" : "유휴"} · demo-runner</span>
         </div>
       </aside>
       <div class="main-shell">
@@ -456,10 +456,20 @@ function releaseCard(release, current = false) {
 }
 
 function buildCaption() {
-  if (state.build.status === "waiting") return "담당자 확정이 끝나면 빌드 검증을 시작합니다.";
-  if (state.build.status === "building") return `${STAGES[state.build.stage]} 단계를 실행하고 있습니다.`;
-  if (state.build.status === "failed") return "실패 원인을 확인했습니다. 담당자 수정 후 재빌드할 수 있습니다.";
-  return "빌드 검증과 태그 생성이 완료됐습니다.";
+  if (state.build.status === "waiting") return "커밋 확정 & 마감 완료 — 빌드 시작 대기";
+  if (state.build.status === "building") {
+    return [
+      "커밋 확정 & 마감 진행 중 — 마감되면 빌드가 시작됩니다",
+      "빌드 진행 중 · 3/9 단계",
+      "빌드 통과 — 검증 진행 중",
+      "승격 진행 중 — main 머지 + 태그",
+      "백머지 진행 중 — develop 반영",
+      "릴리즈 노트 초안 생성 · 검토·수정",
+      "배포 완료 — done",
+    ][state.build.stage];
+  }
+  if (state.build.status === "failed") return "빌드 실패 — 담당자 수정 후 재빌드 대기";
+  return "배포 완료 — done";
 }
 
 function renderOverview() {
@@ -548,44 +558,49 @@ function renderConfirmations() {
 function renderBuild() {
   const meta = statusMeta(state.build.status);
   return `<div class="stack">
-    <section class="detail-hero">
-      <div class="detail-head">
-        <div>
-          <p class="eyebrow">Aster Suite · Production</p>
-          <h2 class="detail-version">${state.build.version}</h2>
-          <div class="detail-meta"><span>${state.build.kind}</span><span>설정 v5</span><span>release-bot 실행</span></div>
-        </div>
-        ${badge(meta.label, meta.tone, true)}
-      </div>
-      ${railScene(state.build.stage, state.build.status)}
-      <div class="button-row">
-        ${buildButtons()}
-      </div>
+    <section class="deploy-heading">
+      <h2 class="deploy-version">${state.build.version}</h2>
+      ${badge(meta.label, meta.tone, true)}
+      <span class="deploy-meta">${state.build.kind} · demo-release-bot — 가상 포트폴리오 데이터</span>
+      <div class="deploy-actions">${buildButtons()}</div>
     </section>
-    ${demoNotice()}
-    <div class="split-layout">
-      <section class="terminal" aria-label="빌드 로그">
-        <div class="terminal-header"><span>build-runner / aster-suite</span><span class="terminal-dots"><span></span><span></span><span></span></span></div>
-        <div class="terminal-body">
-          ${state.build.logs.map((log) => `<div class="log-line ${log.tone}"><span class="log-time">${log.time}</span><span class="log-message">${log.message}</span></div>`).join("")}
+    ${railScene(state.build.stage, state.build.status)}
+    <div class="deploy-grid">
+      <section class="deploy-panel progress-panel">
+        <div class="deploy-panel-title"><strong>현재 진행 현황</strong><span>${Math.round((state.build.stage / (STAGES.length - 1)) * 100)}% · 설정 v5</span></div>
+        <div class="current-progress ${state.build.status === "failed" ? "is-failed" : ""}">
+          <span class="current-progress-icon">${icon(state.build.status === "failed" ? "x" : "box", 19)}</span>
+          <div><strong>${buildCaption()}</strong><span>${state.build.started === "실행 전" ? "빌드 실행 기록이 아직 없습니다" : `실행 #24 · 시작 ${state.build.started} · ${state.build.elapsed}`}</span></div>
+        </div>
+        <div>
+          <h3 class="log-title">빌드 로그</h3>
+          <div class="terminal compact" aria-label="빌드 로그">
+            <div class="terminal-body">
+              ${state.build.logs.map((log, index) => `<div class="log-line ${log.tone}"><span class="log-time">${String(index + 1).padStart(2, "0")}</span><span class="log-message">${log.message}</span></div>`).join("")}
+            </div>
+          </div>
         </div>
       </section>
-      <aside class="stack">
-        <section class="panel">
-          <div class="panel-header"><h2 class="panel-title">실행 요약</h2></div>
-          <div class="panel-body summary-grid">
-            <div class="summary-item"><span>시작</span><strong>${state.build.started}</strong></div>
-            <div class="summary-item"><span>소요 시간</span><strong>${state.build.elapsed}</strong></div>
-            <div class="summary-item"><span>대상 모듈</span><strong>6</strong></div>
+      <aside class="deploy-side">
+        <section class="deploy-panel">
+          <div class="deploy-panel-title"><strong>빌드 입력</strong><span>§4.1</span></div>
+          <p class="deploy-panel-help">루트 포인터 커밋 + 독립 저장소 모듈의 release HEAD</p>
+          <div class="input-list">
+            <div class="input-row">${icon("git", 17)}<div><strong>aster-suite release 포인터 커밋</strong><span>서브모듈 SHA 고정</span></div><code>7ea91c4</code></div>
+            <div class="input-row">${icon("git", 17)}<div><strong>admin-console release HEAD</strong><span>독립 저장소 모듈 · 별도 체크아웃</span></div><code>13bc8f2</code></div>
           </div>
         </section>
-        <section class="panel">
-          <div class="panel-header"><h2 class="panel-title">자동 처리</h2></div>
-          <div class="panel-body flush activity-list">
-            <div class="activity-item"><div class="activity-top"><span class="activity-title">GitHub App</span>${badge("권한 분리", "outline")}</div><span class="activity-meta">개인 토큰 없이 release 브랜치를 관리합니다.</span></div>
-            <div class="activity-item"><div class="activity-top"><span class="activity-title">Windows 빌드</span>${badge("원격 실행", "outline")}</div><span class="activity-meta">제품 빌드와 산출물 수집을 전용 서버에서 처리합니다.</span></div>
-            <div class="activity-item"><div class="activity-top"><span class="activity-title">담당자 알림</span>${badge("자동 전달", "outline")}</div><span class="activity-meta">실패 원인과 다음 행동을 담당 팀에 전달합니다.</span></div>
+        <section class="deploy-panel">
+          <div class="deploy-panel-title"><strong>모듈 빌드 현황</strong></div>
+          <div class="module-status-list">
+            <div><span><code>core-runtime</code><small>Core team</small></span>${badge(state.build.status === "failed" ? "대기" : "검증 대기", "outline")}</div>
+            <div><span><code>admin-console</code><small>Console team</small></span>${badge(state.build.status === "failed" ? "실패" : "검증 대기", state.build.status === "failed" ? "error" : "outline")}</div>
+            <div><span><code>viewer-web</code><small>Viewer team</small></span>${badge("검증 대기", "outline")}</div>
           </div>
+        </section>
+        <section class="deploy-panel">
+          <div class="deploy-panel-title"><strong>승격 게이트</strong></div>
+          <div class="gate-list"><span>${icon("check", 16)} 확정 커밋 고정</span><span>${icon("shield", 16)} 빌드·검증 통과 후 활성화</span></div>
         </section>
       </aside>
     </div>
@@ -594,10 +609,10 @@ function renderBuild() {
 
 function buildButtons() {
   if (state.build.status === "waiting") {
-    return `<button class="btn btn-primary" data-action="run-success">${icon("play", 16)} 성공 흐름 재생</button><button class="btn btn-secondary" data-action="run-failure">실패 대응 보기</button>`;
+    return `<button class="btn btn-secondary" data-action="run-failure">실패 시나리오</button><button class="btn btn-primary" data-action="run-success">${icon("play", 16)} 빌드 시작</button>`;
   }
-  if (state.build.status === "building") return `<button class="btn btn-primary" disabled>실행 중</button>`;
-  if (state.build.status === "failed") return `<button class="btn btn-primary" data-action="retry-build">${icon("rotate", 16)} 수정 후 재빌드</button><button class="btn btn-secondary" data-action="reset-build">초기화</button>`;
+  if (state.build.status === "building") return `<button class="btn btn-secondary" disabled>빌드 실행 중</button>`;
+  if (state.build.status === "failed") return `<button class="btn btn-secondary" data-action="reset-build">초기화</button><button class="btn btn-primary" data-action="retry-build">${icon("rotate", 16)} 지금 재빌드</button>`;
   return `<button class="btn btn-primary" data-action="reset-build">${icon("rotate", 16)} 처음부터 다시 보기</button><button class="btn btn-secondary" data-route="notes">릴리즈 노트 보기</button>`;
 }
 
@@ -784,17 +799,17 @@ function runBuild(mode = "success", startAt = 0) {
   const delay = window.matchMedia("(prefers-reduced-motion: reduce)").matches ? 180 : 850;
   const messages = [
     "담당자들이 확정한 커밋으로 릴리즈 범위를 마감했습니다.",
-    "release/2.9.0 브랜치와 모듈 조합을 생성했습니다.",
-    "Windows 빌드 서버에서 제품 빌드를 실행했습니다.",
+    "release/2.9.0 조합으로 Windows 빌드를 실행했습니다.",
     "산출물과 필수 검증 항목을 확인했습니다.",
-    "버전 태그를 생성하고 develop 브랜치에 반영했습니다.",
+    "main 머지와 버전 태그 생성을 완료했습니다.",
+    "확정된 변경을 develop 브랜치에 백머지했습니다.",
     "로컬 LLM 릴리즈 노트 초안을 연결했습니다.",
     "검토를 마친 릴리즈 노트를 게시하고 배포를 완료했습니다.",
   ];
 
   function next(index) {
     state.build.stage = index;
-    if (mode === "failure" && index === 2) {
+    if (mode === "failure" && index === 1) {
       state.build.status = "failed";
       state.build.elapsed = "1분 12초";
       addLog("admin-console 빌드에서 의존성 버전 불일치를 발견했습니다.", "error", index);
@@ -882,7 +897,7 @@ document.addEventListener("click", (event) => {
   } else if (action === "run-failure") {
     runBuild("failure");
   } else if (action === "retry-build") {
-    runBuild("success", 2);
+    runBuild("success", 1);
   } else if (action === "reset-build") {
     resetBuild();
   } else if (action === "confirm-module") {
