@@ -562,14 +562,15 @@ select:focus-visible {
   grid-template-columns: repeat(6, 1fr);
   align-items: start;
   gap: 0;
-  padding-top: 0.125rem;
+  min-height: 5.25rem;
+  padding-top: 2.75rem;
 }
 
 .rail::before,
 .rail-progress {
   position: absolute;
   z-index: 0;
-  top: 0.65rem;
+  top: 3.35rem;
   left: 4%;
   height: 2px;
   border-radius: var(--radius-pill);
@@ -585,6 +586,142 @@ select:focus-visible {
   max-width: 92%;
   background: var(--color-ink);
   transition: width 360ms var(--ease-standard);
+}
+
+.mini-locomotive {
+  position: absolute;
+  z-index: 3;
+  top: 0.95rem;
+  width: 2.5rem;
+  height: 2rem;
+  color: var(--color-primary);
+  transform: translateX(-50%);
+  transition: left 680ms linear;
+}
+
+.mini-locomotive.is-failed {
+  color: var(--color-error);
+}
+
+.mini-locomotive.is-moving {
+  animation: train-chug 420ms infinite var(--ease-standard);
+}
+
+.train-cab,
+.train-body,
+.train-stack,
+.train-lamp,
+.train-window,
+.train-wheel,
+.train-smoke {
+  position: absolute;
+  display: block;
+}
+
+.train-cab {
+  bottom: 0.45rem;
+  left: 0.1rem;
+  width: 1rem;
+  height: 1.25rem;
+  border-radius: 0.25rem 0.25rem 0.125rem 0.125rem;
+  background: currentColor;
+}
+
+.train-window {
+  z-index: 1;
+  bottom: 1.05rem;
+  left: 0.35rem;
+  width: 0.5rem;
+  height: 0.45rem;
+  border-radius: 0.1rem;
+  background: rgba(255, 255, 255, 0.42);
+}
+
+.train-body {
+  bottom: 0.45rem;
+  left: 0.95rem;
+  width: 1.4rem;
+  height: 0.8rem;
+  border-radius: 0.125rem 0.5rem 0.25rem 0.125rem;
+  background: currentColor;
+}
+
+.train-stack {
+  bottom: 1.18rem;
+  left: 1.75rem;
+  width: 0.42rem;
+  height: 0.65rem;
+  border-radius: 0.15rem 0.15rem 0 0;
+  background: currentColor;
+}
+
+.train-lamp {
+  z-index: 2;
+  right: 0.08rem;
+  bottom: 0.8rem;
+  width: 0.28rem;
+  height: 0.28rem;
+  border-radius: var(--radius-full);
+  background: var(--color-warning);
+}
+
+.train-wheel {
+  bottom: 0.02rem;
+  width: 0.64rem;
+  height: 0.64rem;
+  border: 2px solid var(--color-canvas);
+  border-radius: var(--radius-full);
+  background: var(--color-ink);
+}
+
+.train-wheel::after {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0.2rem;
+  height: 1px;
+  background: var(--color-on-primary);
+  content: "";
+  transform-origin: left center;
+}
+
+.is-moving .train-wheel {
+  animation: train-wheel 720ms infinite linear;
+}
+
+.wheel-back {
+  left: 0.35rem;
+}
+
+.wheel-front {
+  left: 1.55rem;
+}
+
+.train-smoke {
+  z-index: 0;
+  top: -0.05rem;
+  left: 1.94rem;
+  width: 0.42rem;
+  height: 0.42rem;
+  border-radius: var(--radius-full);
+  background: var(--color-muted);
+  opacity: 0;
+  animation: train-smoke 1.25s infinite var(--ease-standard);
+}
+
+.smoke-two {
+  animation-delay: 620ms;
+}
+
+.train-sound {
+  position: absolute;
+  z-index: 2;
+  top: 0;
+  right: 0;
+  color: var(--color-muted);
+  font-size: 0.6875rem;
+  font-weight: var(--weight-medium);
+  letter-spacing: 0.01em;
 }
 
 .rail-progress.error {
@@ -730,6 +867,302 @@ select:focus-visible {
   padding: var(--space-lg);
   border: 1px solid var(--color-hairline);
   border-radius: var(--radius-xl);
+}
+
+.rail-scene {
+  position: relative;
+  overflow: hidden;
+  padding: var(--space-md) var(--space-lg) var(--space-lg);
+  border: 1px solid var(--color-hairline);
+  border-radius: var(--radius-lg);
+  background: var(--color-canvas);
+}
+
+.scene-commit {
+  display: block;
+  color: var(--color-muted);
+  font-family: var(--font-mono);
+  font-size: var(--caption-size);
+  text-align: right;
+}
+
+.scene-track-area {
+  position: relative;
+  min-height: 15.5rem;
+  margin-top: var(--space-xs);
+}
+
+.scene-track-line,
+.scene-track-progress,
+.scene-ties {
+  position: absolute;
+  top: 8.65rem;
+  left: 10%;
+  height: 0.25rem;
+}
+
+.scene-track-line {
+  width: 80%;
+  background: #d1d5db;
+}
+
+.scene-track-progress {
+  z-index: 2;
+  background: var(--color-ink);
+  transition: width 650ms var(--ease-standard);
+}
+
+.scene-track-progress.error {
+  background: var(--color-error);
+}
+
+.scene-ties {
+  top: 9.05rem;
+  width: 80%;
+  height: 0.45rem;
+  border-top: 2px dashed #d1d5db;
+}
+
+.scene-train {
+  --scene-scale: 1;
+  position: absolute;
+  z-index: 4;
+  top: 3.05rem;
+  display: flex;
+  width: 12rem;
+  height: 5.8rem;
+  align-items: flex-end;
+  gap: 0.18rem;
+  transform: translateX(-50%) scale(var(--scene-scale));
+  transform-origin: center bottom;
+  transition: left 650ms linear;
+}
+
+.scene-train.is-moving {
+  animation: scene-chug 460ms ease-in-out infinite;
+}
+
+.freight-car,
+.engine-cab,
+.engine-boiler {
+  position: relative;
+  flex: none;
+  border: 2px solid var(--color-ink);
+  background: var(--color-surface-dark);
+}
+
+.freight-car {
+  width: 3.9rem;
+  height: 3rem;
+  border-radius: 0.3rem 0.3rem 0.15rem 0.15rem;
+}
+
+.freight-window,
+.engine-window {
+  position: absolute;
+  top: 0.55rem;
+  width: 0.8rem;
+  height: 0.7rem;
+  border: 1px solid var(--color-ink);
+  background: var(--color-canvas);
+}
+
+.freight-window {
+  right: 0.65rem;
+}
+
+.engine-cab {
+  width: 2.55rem;
+  height: 4.15rem;
+  border-radius: 0.2rem 0.2rem 0 0;
+}
+
+.engine-window {
+  left: 0.55rem;
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+.engine-roof {
+  position: absolute;
+  top: -0.35rem;
+  left: -0.25rem;
+  width: 3rem;
+  height: 0.32rem;
+  border-radius: var(--radius-full);
+  background: var(--color-ink);
+}
+
+.engine-boiler {
+  width: 4.75rem;
+  height: 2.75rem;
+  border-radius: 1.5rem 0.35rem 0.3rem 0.35rem;
+}
+
+.engine-dome {
+  position: absolute;
+  top: -0.6rem;
+  left: 0.95rem;
+  width: 0.9rem;
+  height: 0.75rem;
+  border-radius: 0.4rem 0.4rem 0 0;
+  background: var(--color-ink);
+}
+
+.engine-stack {
+  position: absolute;
+  top: -1.6rem;
+  right: 0.65rem;
+  width: 0.65rem;
+  height: 1.7rem;
+  border-radius: 0.15rem 0.15rem 0 0;
+  background: var(--color-ink);
+}
+
+.engine-stack::before {
+  position: absolute;
+  top: -0.2rem;
+  left: -0.22rem;
+  width: 1.1rem;
+  height: 0.35rem;
+  border-radius: var(--radius-full);
+  background: var(--color-ink);
+  content: "";
+}
+
+.engine-lamp {
+  position: absolute;
+  top: 0.45rem;
+  right: -0.42rem;
+  width: 0.55rem;
+  height: 0.55rem;
+  border: 2px solid var(--color-ink);
+  border-radius: var(--radius-full);
+  background: var(--color-canvas);
+}
+
+.engine-cowcatcher {
+  position: absolute;
+  right: -0.7rem;
+  bottom: -0.08rem;
+  width: 0.9rem;
+  height: 1.1rem;
+  border-right: 0.18rem solid var(--color-ink);
+  border-bottom: 0.18rem solid var(--color-ink);
+  transform: skewX(-25deg);
+}
+
+.scene-wheel {
+  position: absolute;
+  bottom: -0.8rem;
+  width: 1.35rem;
+  height: 1.35rem;
+  border: 0.3rem solid var(--color-ink);
+  border-radius: var(--radius-full);
+  background: var(--color-canvas);
+}
+
+.scene-train.is-moving .scene-wheel {
+  animation: train-wheel 650ms linear infinite;
+}
+
+.freight-wheel-a { left: 0.35rem; }
+.freight-wheel-b { right: 0.35rem; }
+.cab-wheel { left: 0.55rem; }
+.boiler-wheel-a { left: 0.55rem; }
+.boiler-wheel-b { right: 0.55rem; }
+
+.scene-train.is-failed .freight-car,
+.scene-train.is-failed .engine-cab,
+.scene-train.is-failed .engine-boiler,
+.scene-train.is-failed .engine-dome,
+.scene-train.is-failed .engine-stack,
+.scene-train.is-failed .engine-stack::before,
+.scene-train.is-failed .engine-roof {
+  background: var(--color-error);
+  border-color: var(--color-error);
+}
+
+.scene-smoke {
+  position: absolute;
+  z-index: 5;
+  top: 0.8rem;
+  right: 0.55rem;
+  width: 0.7rem;
+  height: 0.7rem;
+  border-radius: var(--radius-full);
+  background: var(--color-muted);
+  opacity: 0;
+  animation: scene-smoke 1.35s ease-out infinite;
+}
+
+.scene-smoke.smoke-b {
+  animation-delay: 450ms;
+}
+
+.scene-smoke.smoke-c {
+  animation-delay: 900ms;
+}
+
+.scene-station {
+  position: absolute;
+  z-index: 3;
+  top: 7.45rem;
+  display: grid;
+  width: 6.75rem;
+  justify-items: center;
+  gap: var(--space-sm);
+  transform: translateX(-50%);
+  text-align: center;
+}
+
+.scene-station-node {
+  display: grid;
+  width: 2.65rem;
+  height: 2.65rem;
+  place-items: center;
+  border: 1px solid #d1d5db;
+  border-radius: var(--radius-full);
+  background: var(--color-canvas);
+  color: var(--color-muted);
+}
+
+.scene-station.done .scene-station-node,
+.scene-station.active .scene-station-node {
+  border-color: var(--color-ink);
+  background: var(--color-ink);
+  color: var(--color-on-dark);
+}
+
+.scene-station.active .scene-station-node {
+  outline: 3px solid var(--color-hairline);
+}
+
+.scene-station.failed .scene-station-node {
+  border-color: var(--color-error);
+  background: var(--color-error-soft);
+  color: var(--color-error);
+}
+
+.scene-station-label {
+  max-width: 6.75rem;
+  color: var(--color-body);
+  font-size: 0.72rem;
+  font-weight: var(--weight-medium);
+  line-height: 1.35;
+}
+
+.scene-station.active .scene-station-label,
+.scene-station.failed .scene-station-label {
+  color: var(--color-ink);
+  font-weight: var(--weight-semibold);
+}
+
+.scene-caption {
+  margin: 0;
+  color: var(--color-muted);
+  font-size: var(--caption-size);
+  text-align: center;
 }
 
 .detail-head {
@@ -1043,6 +1476,60 @@ select:focus-visible {
   }
 }
 
+@keyframes train-chug {
+  0%,
+  100% {
+    transform: translateX(-50%) translateY(0);
+  }
+  50% {
+    transform: translateX(-50%) translateY(-2.5px);
+  }
+}
+
+@keyframes train-wheel {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes train-smoke {
+  0% {
+    opacity: 0.45;
+    transform: translate(0, 0) scale(0.65);
+  }
+  70% {
+    opacity: 0.18;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-0.45rem, -1.45rem) scale(1.7);
+  }
+}
+
+@keyframes scene-chug {
+  0%,
+  100% {
+    transform: translateX(-50%) translateY(0) scale(var(--scene-scale));
+  }
+  50% {
+    transform: translateX(-50%) translateY(-3px) scale(var(--scene-scale));
+  }
+}
+
+@keyframes scene-smoke {
+  0% {
+    opacity: 0.42;
+    transform: translate(0, 0) scale(0.6);
+  }
+  70% {
+    opacity: 0.15;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(0.9rem, -2.25rem) scale(2.1);
+  }
+}
+
 @media (max-width: 68rem) {
   .metric-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -1124,6 +1611,24 @@ select:focus-visible {
   .module-row > :nth-child(3) {
     display: none;
   }
+
+  .rail-scene {
+    padding-right: var(--space-md);
+    padding-left: var(--space-md);
+  }
+
+  .scene-train {
+    --scene-scale: 0.8;
+  }
+
+  .scene-station {
+    width: 5.25rem;
+  }
+
+  .scene-station-label {
+    max-width: 5.25rem;
+    font-size: 0.65rem;
+  }
 }
 
 @media (max-width: 40rem) {
@@ -1155,6 +1660,51 @@ select:focus-visible {
 
   .rail-stop span:last-child {
     display: none;
+  }
+
+  .rail-scene {
+    padding: var(--space-sm);
+  }
+
+  .scene-commit {
+    text-align: left;
+  }
+
+  .scene-track-area {
+    min-height: 12.75rem;
+  }
+
+  .scene-track-line,
+  .scene-track-progress {
+    top: 7.35rem;
+  }
+
+  .scene-ties {
+    top: 7.75rem;
+  }
+
+  .scene-train {
+    --scene-scale: 0.58;
+    top: 2.2rem;
+  }
+
+  .scene-station {
+    top: 6.15rem;
+    width: 3.5rem;
+  }
+
+  .scene-station-node {
+    width: 2.35rem;
+    height: 2.35rem;
+  }
+
+  .scene-station-label {
+    max-width: 3.5rem;
+    font-size: 0.58rem;
+  }
+
+  .scene-caption {
+    text-align: left;
   }
 
   .detail-table th:nth-child(3),

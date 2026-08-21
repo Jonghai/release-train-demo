@@ -4,6 +4,8 @@
 
 [데모 보기](https://jonghai.github.io/release-train-demo/)
 
+[개발자 GitHub 프로필](https://github.com/JongHa11)
+
 ![Release Train Demo 미리보기](./preview.png)
 
 ## 데모에서 확인할 수 있는 흐름
@@ -12,6 +14,7 @@
 - 프로젝트별 `release/<version>` 기준 구성
 - Windows 빌드 및 산출물 검증 시뮬레이션
 - 빌드 실패 알림과 수정 후 재빌드
+- 7개 배포 단계를 따라 움직이는 기관차 시각화
 - 배포 이력과 감사 로그
 - 검토를 마친 릴리즈 노트
 
