@@ -43,6 +43,8 @@ const NAV = [
 const TITLES = {
   overview: ["배포 현황 대시보드", "전체 배포를 한눈에"],
   confirmations: ["확정 현황", "배포 전 커밋 확정 수집 · 마감"],
+  "new-release": ["새 배포 시작", "release 조합 구성"],
+  "confirm-module": ["모듈 확정", "release 에 반영할 안정 지점 선택"],
   build: ["배포 상세", "실시간 배포 진행 현황"],
   history: ["배포 이력", "과거 배포 라운드 · 어떤 커밋이 어떤 태그로 나갔는지 · 빌드 검증 기록"],
   notes: ["릴리즈 노트", "게시된 릴리즈 노트"],
@@ -60,6 +62,12 @@ const modules = [
     team: "Core team",
     status: "confirmed",
     summary: "캐시 만료 처리와 오류 복구 흐름을 개선했습니다.",
+    commits: [
+      { sha: "7ea91c4", message: "fix: 캐시 만료 후 복구 흐름 안정화", author: "Core team", time: "오늘 10:18" },
+      { sha: "54c78a1", message: "refactor: 캐시 정책 모듈 분리", author: "Core team", time: "오늘 09:42" },
+      { sha: "1a36df0", message: "feat: 캐시 상태 진단 로그 추가", author: "Core team", time: "어제 17:06" },
+    ],
+    selectedIndex: 0,
   },
   {
     id: "gateway-api",
@@ -69,6 +77,11 @@ const modules = [
     team: "Platform team",
     status: "confirmed",
     summary: "요청 제한 정책과 감사 로그를 추가했습니다.",
+    commits: [
+      { sha: "2f84b73", message: "feat: 요청 제한 정책과 감사 로그 추가", author: "Platform team", time: "오늘 11:03" },
+      { sha: "9c3b8e5", message: "fix: 인증 실패 응답 형식 통일", author: "Platform team", time: "오늘 10:27" },
+    ],
+    selectedIndex: 0,
   },
   {
     id: "admin-console",
@@ -76,53 +89,14 @@ const modules = [
     repo: "demo-org/aster-admin-console",
     commit: "b108de2",
     team: "Console team",
-    status: "pending",
-    summary: "배포 상태 필터와 접근성 안내를 개선했습니다.",
-  },
-  {
-    id: "viewer-sdk",
-    name: "viewer-sdk",
-    repo: "demo-org/aster-viewer-sdk",
-    commit: "8c0a5dd",
-    team: "Viewer team",
     status: "confirmed",
-    summary: "렌더링 중 네트워크 복구 동작을 안정화했습니다.",
-  },
-  {
-    id: "export-worker",
-    name: "export-worker",
-    repo: "demo-org/aster-export-worker",
-    commit: "0f2e64a",
-    team: "Export team",
-    status: "pending",
-    summary: "대용량 파일 처리 시 메모리 사용량을 줄였습니다.",
-  },
-  {
-    id: "storage-service",
-    name: "storage-service",
-    repo: "demo-org/aster-storage-service",
-    commit: "52bd401",
-    team: "Storage team",
-    status: "latest",
-    summary: "이전 릴리즈 이후 제품 코드 변경이 없습니다.",
-  },
-  {
-    id: "chart-kit",
-    name: "chart-kit",
-    repo: "demo-org/aster-chart-kit",
-    commit: "9d3fc71",
-    team: "Chart team",
-    status: "docs",
-    summary: "가이드 문서만 변경되어 확정이 필요하지 않습니다.",
-  },
-  {
-    id: "docs-site",
-    name: "docs-site",
-    repo: "demo-org/aster-docs-site",
-    commit: "c29b8f0",
-    team: "Docs team",
-    status: "docs",
-    summary: "사용자 도움말과 예제 화면을 갱신했습니다.",
+    summary: "배포 상태 필터와 접근성 안내를 개선했습니다.",
+    commits: [
+      { sha: "b108de2", message: "feat: 배포 상태 필터 추가", author: "Console team", time: "오늘 11:21" },
+      { sha: "64d1ae8", message: "fix: 키보드 포커스 이동 보완", author: "Console team", time: "오늘 10:46" },
+      { sha: "ad389c1", message: "style: 상태 배지 대비 개선", author: "Console team", time: "어제 16:31" },
+    ],
+    selectedIndex: 0,
   },
 ];
 
@@ -244,7 +218,25 @@ const state = {
   modules: modules.map((item) => ({ ...item })),
   selectedHistory: 104,
   selectedNote: 4,
+  selectedModuleId: "core-runtime",
   noteDetail: false,
+  round: {
+    id: 105,
+    version: "2.9.0",
+    kind: "정기 배포",
+    status: "closed",
+    created: "2026-08-28 09:00",
+    deadline: "2026-08-28 18:00",
+    memo: "정기 릴리즈 후보 커밋 확정 및 빌드 검증",
+    pointer: "a71c9e4",
+  },
+  releaseForm: {
+    version: "2.10.0",
+    kind: "정기 배포",
+    deadline: "2026-09-04T18:00",
+    memo: "",
+    autoBuild: false,
+  },
   build: {
     version: "2.9.0",
     kind: "정기 배포",
@@ -339,7 +331,7 @@ function railScene(stage, status = "waiting") {
     done: "배포 완료 — done",
   }[status];
   return `<div class="rail-scene">
-    <span class="scene-commit">커밋해시 7ea91c4</span>
+    <span class="scene-commit">커밋해시 ${state.round.pointer === "—" ? "7ea91c4" : state.round.pointer}</span>
     <div class="scene-track-area">
       <div class="scene-ties"></div>
       <div class="scene-track-line"></div>
@@ -376,7 +368,8 @@ function demoNotice() {
 }
 
 function topbarActions() {
-  if (["overview", "confirmations", "history"].includes(state.route)) return "";
+  if (state.route === "overview") return `<button class="btn btn-primary" data-route="new-release">새 배포 시작</button>`;
+  if (["confirmations", "confirm-module", "new-release", "history"].includes(state.route)) return "";
   if (state.route === "build") {
     return state.build.status === "building" ? `<div class="live-chip"><span class="runner-dot is-busy"></span>실시간</div>` : "";
   }
@@ -532,7 +525,7 @@ function dashboardTrainCard(release, current = false) {
         <i class="mini-cab"></i><i class="mini-boiler"></i><i class="mini-stack"></i><i class="mini-light"></i><i class="mini-wheel wheel-one"></i><i class="mini-wheel wheel-two"></i>
       </span>
     </div>
-    <div class="dashboard-stage"><span>${current ? buildCaption() : "배포 완료 — done"}</span>${current && state.build.status === "waiting" ? "" : `<code>${current ? "확정 6/8" : ""}</code>`}</div>
+    <div class="dashboard-stage"><span>${current ? buildCaption() : "배포 완료 — done"}</span>${current && state.build.status === "waiting" ? "" : `<code>${current ? `확정 ${state.modules.filter((item) => item.status === "confirmed").length}/${state.modules.length}` : ""}</code>`}</div>
   </button>`;
 }
 
@@ -543,15 +536,16 @@ function renderConfirmations() {
   const terminal = confirmed + noAction;
   const actionable = state.modules.filter((item) => item.status === "confirmed" || item.status === "pending");
   const passive = state.modules.filter((item) => item.status === "latest" || item.status === "docs");
+  const closed = state.round.status === "closed";
   return `<div class="collect-page">
-    <div class="collect-select"><select aria-label="릴리즈 라운드"><option>2.9.0 · 정기 배포 · 확정 ${confirmed}/${state.modules.length}</option><option>2.8.0 · 정기 배포</option></select></div>
+    <div class="collect-select"><select aria-label="릴리즈 라운드"><option>${state.round.version} · ${state.round.kind} · 확정 ${confirmed}/${state.modules.length}</option><option>2.8.0 · 정기 배포</option></select></div>
     <section class="collect-header">
-      <div><div class="collect-title"><strong>확정 현황</strong>${badge("정기", "outline")}<code>2.9.0</code>${badge("수집 중", "info")}</div><p>라운드 r-105 · 생성 2026-08-28 09:00 · 마감 2026-08-28 18:00</p></div>
-      <div class="collect-actions"><button class="btn btn-secondary btn-sm">변경 재확인</button>${pending ? '<button class="btn btn-secondary btn-sm" data-action="confirm-all">일괄 확정</button>' : ""}</div>
+      <div><div class="collect-title"><strong>확정 현황</strong>${badge(state.round.kind.includes("정기") ? "정기" : "긴급", "outline")}<code>${state.round.version}</code>${badge(closed ? "수집 완료 — 빌드 검증 후 승격" : "수집 중", closed ? "success" : "info")}</div><p>라운드 r-${state.round.id} · 생성 ${state.round.created} · 마감 ${state.round.deadline}</p>${closed ? `<p class="closed-guide">빌드가 깨지면 <code>release/${state.round.version}</code>에 수정한 뒤 release 변경 확인으로 감지된 모듈만 재확정합니다.</p>` : ""}</div>
+      <div class="collect-actions"><button class="btn btn-secondary btn-sm" ${closed ? "disabled" : ""}>변경 재확인</button><button class="btn btn-secondary btn-sm" ${closed ? "disabled" : ""}>마감 수정</button><button class="btn btn-secondary btn-sm" ${closed ? "disabled" : ""}>라운드 취소</button><button class="btn btn-primary btn-sm" data-action="close-round" ${closed || pending ? "disabled" : ""}>${closed ? "마감 완료" : "지금 마감"}</button></div>
     </section>
     <div class="usage-notice">${icon("info", 18)}<div>하나의 기능·이슈가 <strong>여러 모듈에 걸쳐 있으면 함께 배포</strong>돼야 합니다 — 확정 전 <strong>관련 기능 담당자와 맞춰</strong> 빠지는 모듈이 없게 확인해주세요.<details><summary>Release Train 사용 안내</summary></details></div></div>
     <section class="collect-stats">
-      ${collectStat("마감까지", "02:47:18", "2026-08-28 18:00", "ink")}
+      ${collectStat("마감까지", closed ? "—" : "02:47:18", state.round.deadline, "ink")}
       ${collectStat("종결 진행률", `${terminal} / ${state.modules.length}`, `확정 ${confirmed} · 스킵 0 · 최신 ${state.modules.filter((x) => x.status === "latest").length} · 문서만 ${state.modules.filter((x) => x.status === "docs").length}`, "success")}
       ${collectStat("미응답 대기", String(pending), "마감 시 지난 배포 버전 유지", "warning")}
       ${collectStat("머지 실패", "0", "해소 전 종결 차단", "error")}
@@ -573,16 +567,72 @@ function confirmationCard(item) {
   const meta = moduleStatusMeta(item.status);
   const pending = item.status === "pending";
   const confirmed = item.status === "confirmed";
-  return `<article class="confirmation-card ${pending ? "needs-action" : ""}">
+  return `<button class="confirmation-card ${pending ? "needs-action" : ""}" data-action="open-confirm-module" data-module-id="${item.id}" ${state.round.status === "closed" ? "disabled" : ""}>
     <div class="confirmation-card-head"><div><strong>${item.name}</strong><code>${item.repo}</code></div>${badge(meta.label, meta.tone)}</div>
     <p class="confirmation-owner">${item.team}</p>
     <div class="confirmation-detail">
-      ${pending ? `<span>선행 3건 · 확정 대기</span><button class="btn btn-secondary btn-sm" data-action="confirm-module" data-module-id="${item.id}">커밋 확정</button>` : ""}
+      ${pending ? `<span>main 대비 develop 선행 ${item.commits.length}건 · 카드를 열어 안정 커밋 선택</span>` : ""}
       ${confirmed ? `<span class="confirmed-line">✓ <code>${item.commit}</code> · 2026-08-28 10:24 <small>(기록됨 — 마감 시 머지 · 수정/스킵 가능)</small></span><div class="confirmation-summary"><b>확정 내용 요약</b><span>• ${item.summary}</span></div>` : ""}
       ${item.status === "latest" ? "<span>반영할 새 커밋 없음 · 확정 불필요</span>" : ""}
       ${item.status === "docs" ? "<span>문서 변경 2건 · 제품 코드 변경 없음 — 확정 불필요</span>" : ""}
     </div>
-  </article>`;
+  </button>`;
+}
+
+function renderModuleConfirm() {
+  const item = state.modules.find((module) => module.id === state.selectedModuleId) || state.modules[0];
+  const selectedIndex = item.selectedIndex || 0;
+  const selected = item.commits[selectedIndex];
+  const confirmed = item.status === "confirmed";
+  return `<div class="module-confirm-page">
+    <div class="module-breadcrumb"><button data-route="confirmations">확정 현황</button><span>›</span><strong>${item.name}</strong></div>
+    <section class="module-confirm-head">
+      <div><div class="module-confirm-title"><strong>${item.name}</strong>${badge(confirmed ? "확정됨 — 마감 전 수정 가능" : "확정 대기", confirmed ? "success" : "info")}</div><p>${item.repo} · main 대비 develop 선행 <b>${item.commits.length}건</b> · release 브랜치 없음 — 마감 시 main에서 생성</p></div>
+      <div><small>기준: 방금 전</small><button class="btn btn-secondary btn-sm">커밋 갱신</button></div>
+    </section>
+    ${confirmed ? `<div class="module-guide">현재 <code>${item.commit}</code>까지 확정 기록된 모듈입니다. 아직 머지 전이라 마감 전까지 확정 지점을 수정하거나 스킵으로 전환할 수 있습니다.</div>` : ""}
+    <div class="module-confirm-grid">
+      <section class="commit-picker">
+        <div class="commit-picker-head"><div><strong>develop 브랜치 커밋 목록</strong><span>release 브랜치에 반영할 안정 커밋을 선택해주세요</span></div><small>최신이 위 · 선택 커밋과 그 아래(과거)가 모두 포함</small></div>
+        <div class="commit-list">
+          ${item.commits.map((commit, index) => {
+            const isSelected = index === selectedIndex;
+            const isNewer = index < selectedIndex;
+            const current = confirmed && commit.sha === item.commit;
+            return `<label class="commit-row ${isSelected ? "selected" : ""} ${isNewer ? "excluded" : ""}">
+              ${isSelected ? `<span class="commit-boundary">▼ 여기부터 아래 ${item.commits.length - index}건이 모두 RELEASE에 포함됩니다</span>` : ""}
+              ${isNewer && index === selectedIndex - 1 ? `<span class="commit-boundary excluded-copy">▲ 위 ${selectedIndex}건은 더 최신 커밋 — 이번 확정에서 제외</span>` : ""}
+              <span class="commit-main"><input type="radio" name="commit-cutoff" data-action="select-commit" data-module-id="${item.id}" data-index="${index}" ${isSelected ? "checked" : ""}><code>${commit.sha}</code>${current ? '<em>현재 확정</em>' : ""}<span>${commit.message}</span><small>${commit.author} · ${commit.time}</small>${isSelected ? '<b>확정 대상</b>' : index > selectedIndex ? '<b>포함</b>' : ""}</span>
+            </label>`;
+          }).join("")}
+        </div>
+      </section>
+      <aside class="confirm-summary-panel">
+        <span>CONFIRM</span><h2>안정 버전 확정</h2>
+        <dl><div><dt>확정 대상</dt><dd><code>${selected.sha}</code></dd></div><div><dt>포함 커밋</dt><dd>${item.commits.length - selectedIndex}건</dd></div><div><dt>제외 (더 최신)</dt><dd>${selectedIndex}건</dd></div></dl>
+        <button class="btn btn-primary" data-action="confirm-selected" data-module-id="${item.id}">${confirmed ? "이 커밋으로 확정 수정" : "이 커밋까지 확정"}</button>
+        <button class="btn btn-secondary" data-action="skip-module" data-module-id="${item.id}">${confirmed ? "스킵으로 전환 — 이번 라운드 반영 안 함" : "이번 라운드 스킵"}</button>
+        <p>확정은 커밋 해시 기록이며 실제 머지는 마감 시 일괄 수행됩니다. 스킵하면 지난 배포 버전으로 배포됩니다.</p>
+      </aside>
+    </div>
+  </div>`;
+}
+
+function renderNewRelease() {
+  const form = state.releaseForm;
+  return `<div class="new-release-page">
+    ${demoNotice()}
+    <div class="new-release-guide">라운드를 만들면 담당자 확정은 확정 현황에서 진행되고, 마감 후 빌드 검증이 배포 상세 화면으로 이어집니다.</div>
+    <form class="new-release-form" data-form="new-release">
+      <label><span>프로젝트</span><select disabled><option>aster-suite-demo</option></select></label>
+      <label><span>배포 유형</span><select name="kind"><option ${form.kind === "정기 배포" ? "selected" : ""}>정기 배포</option><option ${form.kind === "긴급 배포" ? "selected" : ""}>긴급 배포</option></select></label>
+      <label><span>릴리즈 버전</span><input name="version" value="${form.version}" pattern="[0-9]+\\.[0-9]+\\.[0-9]+" required><small>형식은 N.M.P입니다 — release 브랜치와 태그에 사용합니다.</small></label>
+      <label><span>확정 마감 시각</span><input type="datetime-local" name="deadline" value="${form.deadline}" required></label>
+      <label><span>메모 (선택)</span><textarea name="memo" rows="3" placeholder="이번 배포의 목적이나 확인할 내용을 적어주세요.">${form.memo}</textarea></label>
+      <label class="switch-field"><span><b>마감 후 자동 빌드 시작</b><small>포인터 커밋 생성 직후 빌드 검증을 시작합니다.</small></span><input type="checkbox" name="autoBuild" ${form.autoBuild ? "checked" : ""}></label>
+      <div class="form-actions"><button class="btn btn-secondary" type="button" data-route="overview">취소</button><button class="btn btn-primary" type="submit">배포 시작</button></div>
+    </form>
+  </div>`;
 }
 
 function renderBuild() {
@@ -592,7 +642,7 @@ function renderBuild() {
       <h2 class="deploy-version">${state.build.version}</h2>
       ${badge(meta.label, meta.tone, true)}
       <span class="deploy-meta">${state.build.kind} · demo-release-bot — 가상 포트폴리오 데이터</span>
-      <div class="deploy-actions">${buildButtons()}</div>
+      <div class="deploy-actions"><button class="btn btn-secondary" data-route="new-release">새 배포 시작</button>${buildButtons()}</div>
     </section>
     ${railScene(state.build.stage, state.build.status)}
     <div class="deploy-grid">
@@ -616,16 +666,16 @@ function renderBuild() {
           <div class="deploy-panel-title"><strong>빌드 입력</strong><span>§4.1</span></div>
           <p class="deploy-panel-help">루트 포인터 커밋 + 독립 저장소 모듈의 release HEAD</p>
           <div class="input-list">
-            <div class="input-row">${icon("git", 17)}<div><strong>aster-suite release 포인터 커밋</strong><span>서브모듈 SHA 고정</span></div><code>7ea91c4</code></div>
+            <div class="input-row">${icon("git", 17)}<div><strong>aster-suite release 포인터 커밋</strong><span>서브모듈 SHA 고정</span></div><code>${state.round.pointer === "—" ? "7ea91c4" : state.round.pointer}</code></div>
             <div class="input-row">${icon("git", 17)}<div><strong>admin-console release HEAD</strong><span>독립 저장소 모듈 · 별도 체크아웃</span></div><code>13bc8f2</code></div>
           </div>
         </section>
         <section class="deploy-panel">
           <div class="deploy-panel-title"><strong>모듈 빌드 현황</strong></div>
           <div class="module-status-list">
-            <div><span><code>core-runtime</code><small>Core team</small></span>${badge(state.build.status === "failed" ? "대기" : "검증 대기", "outline")}</div>
-            <div><span><code>admin-console</code><small>Console team</small></span>${badge(state.build.status === "failed" ? "실패" : "검증 대기", state.build.status === "failed" ? "error" : "outline")}</div>
-            <div><span><code>viewer-web</code><small>Viewer team</small></span>${badge("검증 대기", "outline")}</div>
+            <div><span><code>core-runtime</code><small>Core team</small></span>${badge(state.build.status === "done" ? "통과" : state.build.status === "failed" ? "대기" : "검증 대기", state.build.status === "done" ? "success" : "outline")}</div>
+            <div><span><code>admin-console</code><small>Console team</small></span>${badge(state.build.status === "done" ? "통과" : state.build.status === "failed" ? "실패" : "검증 대기", state.build.status === "done" ? "success" : state.build.status === "failed" ? "error" : "outline")}</div>
+            <div><span><code>viewer-web</code><small>Viewer team</small></span>${badge(state.build.status === "done" ? "통과" : "검증 대기", state.build.status === "done" ? "success" : "outline")}</div>
           </div>
         </section>
         <section class="deploy-panel">
@@ -634,7 +684,24 @@ function renderBuild() {
         </section>
       </aside>
     </div>
+    ${state.build.status === "done" ? renderArtifacts() : ""}
   </div>`;
+}
+
+function renderArtifacts() {
+  const artifacts = [
+    ["aster-daemon-2.9.0-20260828174218.tar.gz", "186MB"],
+    ["aster-daemon-2.9.0-20260828174218.zip", "186MB"],
+    ["aster-server-2.9.0-20260828174218.zip", "204MB"],
+    ["aster-viewer-2.9.0-20260828174602.zip", "148MB"],
+    ["aster-previewer-2.9.0-20260828174831.zip", "172MB"],
+  ];
+  const emptyZip = "data:application/zip;base64,UEsFBgAAAAAAAAAAAAAAAAAAAAAAAA==";
+  return `<section class="artifact-panel">
+    <div class="artifact-head"><div><h2>배포 산출물</h2><p>빌드 서버가 보관한 결과 파일입니다.</p></div><a class="btn btn-secondary" href="${emptyZip}" download="aster-suite-${state.build.version}-artifacts.zip">모두 다운로드 (zip)</a></div>
+    <div class="artifact-list">${artifacts.map(([name, size]) => `<div><span><code>${name.replace("2.9.0", state.build.version)}</code><small>${size} · 준비됨</small></span><a class="btn btn-secondary btn-sm" href="data:text/plain;charset=utf-8,Portfolio%20demo%20artifact" download="${name.replace("2.9.0", state.build.version)}">다운로드</a></div>`).join("")}</div>
+    <p class="artifact-note">산출물 원본은 빌드 서버가 보관합니다. 일괄 zip에는 게시된 릴리즈 노트도 함께 담깁니다.</p>
+  </section>`;
 }
 
 function buildButtons() {
@@ -721,6 +788,8 @@ function renderPage() {
   return {
     overview: renderOverview,
     confirmations: renderConfirmations,
+    "new-release": renderNewRelease,
+    "confirm-module": renderModuleConfirm,
     build: renderBuild,
     history: renderHistory,
     notes: renderNotes,
@@ -776,8 +845,8 @@ function runBuild(mode = "success", startAt = 0) {
   state.build.elapsed = "실행 중";
   if (startAt === 0) {
     state.build.logs = [];
-    addLog("PS C:\\build-runner\\work\\aster-suite> git checkout release/2.9.0");
-    addLog("HEAD is now at 7ea91c4 chore: prepare release 2.9.0");
+    addLog(`PS C:\\build-runner\\work\\aster-suite> git checkout release/${state.build.version}`);
+    addLog(`HEAD is now at ${state.round.pointer === "—" ? "7ea91c4" : state.round.pointer} chore: prepare release ${state.build.version}`);
     addLog("PS C:\\build-runner\\work\\aster-suite> .\\gradlew clean assemble");
   } else {
     addLog("");
@@ -814,7 +883,7 @@ function runBuild(mode = "success", startAt = 0) {
       showToast("빌드 실패를 감지했습니다", "담당자 수정 후 이 화면에서 재빌드할 수 있습니다.", "error");
       return;
     }
-    messages[index].forEach((line) => addLog(line, /FAILED|error|FAILURE/.test(line) ? "error" : /SUCCESSFUL|pass|FINISHED|created|published/.test(line) ? "success" : "neutral", index));
+    messages[index].map((line) => line.replaceAll("2.9.0", state.build.version)).forEach((line) => addLog(line, /FAILED|error|FAILURE/.test(line) ? "error" : /SUCCESSFUL|pass|FINISHED|created|published/.test(line) ? "success" : "neutral", index));
     render();
     if (index >= STAGES.length - 1) {
       state.build.status = "done";
@@ -836,29 +905,84 @@ function resetBuild() {
   state.build.started = "실행 전";
   state.build.elapsed = "—";
   state.build.logs = [
-    { time: "", message: "PS C:\\build-runner\\work\\aster-suite> git checkout release/2.9.0", tone: "neutral" },
-    { time: "", message: "HEAD is now at 7ea91c4 chore: prepare release 2.9.0", tone: "neutral" },
+    { time: "", message: `PS C:\\build-runner\\work\\aster-suite> git checkout release/${state.build.version}`, tone: "neutral" },
+    { time: "", message: `HEAD is now at ${state.round.pointer === "—" ? "7ea91c4" : state.round.pointer} chore: prepare release ${state.build.version}`, tone: "neutral" },
     { time: "", message: "PS C:\\build-runner\\work\\aster-suite> .\\gradlew clean assemble", tone: "neutral" },
   ];
   render();
   showToast("데모를 초기화했습니다", "성공 흐름이나 실패 대응을 다시 재생할 수 있습니다.", "neutral");
 }
 
-function confirmModule(id) {
+function openConfirmModule(id) {
   const target = state.modules.find((item) => item.id === id);
-  if (!target || target.status !== "pending") return;
-  target.status = "confirmed";
-  render();
-  showToast(`${target.name} 커밋을 확정했습니다`, `${target.commit}가 이번 릴리즈 기준으로 저장됐습니다.`, "success");
+  if (!target || state.round.status === "closed") return;
+  state.selectedModuleId = id;
+  target.selectedIndex = Math.max(0, target.commits.findIndex((commit) => commit.sha === target.commit));
+  navigate("confirm-module");
 }
 
-function confirmAll() {
-  const pending = state.modules.filter((item) => item.status === "pending");
-  pending.forEach((item) => {
-    item.status = "confirmed";
-  });
+function selectCommit(id, index) {
+  const target = state.modules.find((item) => item.id === id);
+  if (!target) return;
+  target.selectedIndex = Number(index);
   render();
-  showToast("모든 응답을 반영했습니다", `${pending.length}개 모듈의 커밋이 확정됐습니다.`, "success");
+}
+
+function confirmSelected(id) {
+  const target = state.modules.find((item) => item.id === id);
+  if (!target) return;
+  const selected = target.commits[target.selectedIndex || 0];
+  const wasConfirmed = target.status === "confirmed";
+  target.status = "confirmed";
+  target.commit = selected.sha;
+  navigate("confirmations");
+  showToast(wasConfirmed ? `${target.name} 확정을 수정했습니다` : `${target.name} 커밋을 확정했습니다`, `${selected.sha} 해시만 기록했습니다. 실제 머지는 마감할 때 수행됩니다.`, "success");
+}
+
+function skipModule(id) {
+  const target = state.modules.find((item) => item.id === id);
+  if (!target) return;
+  target.status = "latest";
+  navigate("confirmations");
+  showToast(`${target.name}을 이번 라운드에서 제외했습니다`, "지난 배포 버전을 유지합니다.", "neutral");
+}
+
+function closeRound() {
+  if (state.modules.some((item) => item.status === "pending")) return;
+  state.round.status = "closed";
+  state.round.pointer = "a71c9e4";
+  state.build.version = state.round.version;
+  state.build.kind = state.round.kind;
+  state.build.status = "waiting";
+  state.build.stage = 0;
+  render();
+  showToast("마감과 일괄 머지를 완료했습니다", `확정 해시로 release/${state.round.version}을 만들고 루트 포인터 ${state.round.pointer}를 기록했습니다.`, "success");
+}
+
+function createRound(formData) {
+  state.releaseForm.version = String(formData.get("version") || "2.10.0");
+  state.releaseForm.kind = String(formData.get("kind") || "정기 배포");
+  state.releaseForm.deadline = String(formData.get("deadline") || "2026-09-04T18:00");
+  state.releaseForm.memo = String(formData.get("memo") || "");
+  state.releaseForm.autoBuild = formData.get("autoBuild") === "on";
+  state.round = {
+    id: state.round.id + 1,
+    version: state.releaseForm.version,
+    kind: state.releaseForm.kind,
+    status: "collecting",
+    created: "방금 전",
+    deadline: state.releaseForm.deadline.replace("T", " "),
+    memo: state.releaseForm.memo || "새 릴리즈 후보 조합",
+    pointer: "—",
+  };
+  state.modules.forEach((item) => {
+    item.status = "pending";
+    item.selectedIndex = 0;
+    item.commit = item.commits[0].sha;
+  });
+  state.build.version = state.round.version;
+  navigate("confirmations");
+  showToast(`${state.round.version} 배포 라운드를 만들었습니다`, "각 모듈 담당자가 안정 커밋을 선택할 차례입니다.", "success");
 }
 
 function showToast(title, description, tone = "neutral") {
@@ -896,10 +1020,16 @@ document.addEventListener("click", (event) => {
     runBuild("success", 1);
   } else if (action === "reset-build") {
     resetBuild();
-  } else if (action === "confirm-module") {
-    confirmModule(target.dataset.moduleId);
-  } else if (action === "confirm-all") {
-    confirmAll();
+  } else if (action === "open-confirm-module") {
+    openConfirmModule(target.dataset.moduleId);
+  } else if (action === "select-commit") {
+    selectCommit(target.dataset.moduleId, target.dataset.index);
+  } else if (action === "confirm-selected") {
+    confirmSelected(target.dataset.moduleId);
+  } else if (action === "skip-module") {
+    skipModule(target.dataset.moduleId);
+  } else if (action === "close-round") {
+    closeRound();
   } else if (action === "open-release") {
     if (target.dataset.releaseId === "current") navigate("build");
     else {
@@ -917,6 +1047,13 @@ document.addEventListener("click", (event) => {
     state.noteDetail = false;
     render();
   }
+});
+
+document.addEventListener("submit", (event) => {
+  const form = event.target.closest('[data-form="new-release"]');
+  if (!form) return;
+  event.preventDefault();
+  createRound(new FormData(form));
 });
 
 window.addEventListener("hashchange", () => {
