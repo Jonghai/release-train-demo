@@ -8,6 +8,32 @@
 
 ![Release Train Demo 미리보기](./preview.png)
 
+## 주요 화면
+
+### 커밋 확정 현황
+
+각 모듈 담당자가 이번 배포에 포함할 커밋을 확정하고, 전체 확정 상태를 함께 확인합니다.
+
+![모듈별 커밋 확정 현황](./screenshots/confirmation-status.png)
+
+### 배포 상세
+
+빌드 실행 전 전체 배포 단계와 현재 상태를 기차 UI로 한눈에 확인합니다.
+
+![기차와 전체 배포 단계가 보이는 배포 상세 화면](./screenshots/deployment-status.png)
+
+### 배포 이력
+
+배포별 빌드 결과와 모듈 반영 내역, 주요 처리 시점을 한 화면에서 확인합니다.
+
+![배포 이력과 모듈 반영 내역](./screenshots/deployment-history.png)
+
+### 릴리즈 노트
+
+검토를 마친 릴리즈 노트를 버전별로 조회합니다.
+
+![버전별 릴리즈 노트](./screenshots/release-notes.png)
+
 ## 데모에서 확인할 수 있는 흐름
 
 - 모듈별 안정화 커밋 확정
@@ -15,9 +41,9 @@
 - 선택한 커밋과 그 이전 커밋을 함께 포함하는 확정 경계 선택
 - 확정 해시 기록, 마감 전 수정, 마감 시 일괄 머지의 분리
 - 프로젝트별 `release/<version>` 기준 구성
-- 루트 포인터 커밋으로 여러 저장소의 배포 조합 고정
+- 여러 저장소의 배포 조합을 하나의 기준으로 고정
 - Windows 빌드 및 산출물 검증 시뮬레이션
-- 완성된 배포 산출물 개별·일괄 다운로드
+- 완성된 배포 산출물 목록과 다운로드 화면
 - 빌드 실패 알림과 수정 후 재빌드
 - 7개 배포 단계를 따라 움직이는 기관차 시각화
 - 배포 이력과 감사 로그
@@ -45,11 +71,4 @@ python -m http.server 4173
 - HTML
 - CSS
 - JavaScript
-- Simple Design System
 - GitHub Pages
-
-## 디자인 시스템
-
-사용자가 제공한 Simple Design System의 Pretendard, 색상, 간격, 모서리, 상태 토큰을 사용했습니다.
-
-Pretendard는 SIL Open Font License 1.1에 따라 배포됩니다. 자세한 내용은 `FONT-LICENSE.md`를 확인해 주세요.
