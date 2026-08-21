@@ -1,0 +1,61 @@
+:root {
+  /* ---- Primary / action (near-black, monochrome brand voltage) ---- */
+  --color-primary: #111111;
+  --color-primary-hover: #1c1c1c;
+  --color-primary-active: #242424;
+  --color-primary-disabled: #e5e7eb;
+
+  /* ---- Ink / text ---- */
+  --color-ink: #111111;        /* headlines, primary text */
+  --color-body: #374151;       /* running text */
+  --color-muted: #6b7280;      /* secondary text */
+  --color-muted-soft: #898989; /* captions, fine print */
+
+  /* ---- Surfaces ---- */
+  --color-canvas: #ffffff;         /* page floor */
+  --color-surface-soft: #f8f9fa;   /* pill-group bg, soft dividers */
+  --color-surface-card: #f5f5f5;   /* feature/testimonial cards */
+  --color-surface-strong: #e5e7eb; /* disabled bg */
+  --color-surface-dark: #101010;   /* footer, featured tier */
+  --color-surface-dark-elevated: #1a1a1a;
+
+  /* ---- Borders ---- */
+  --color-hairline: #e5e7eb;       /* 1px borders on light surfaces */
+  --color-hairline-soft: #f3f4f6;  /* barely-visible section dividers */
+
+  /* ---- On-color text ---- */
+  --color-on-primary: #ffffff;
+  --color-on-dark: #ffffff;
+  --color-on-dark-soft: #a1a1aa;
+
+  /* ---- Semantic ---- */
+  --color-success: #10b981;
+  --color-success-soft: #ecfdf5;
+  --color-warning: #f59e0b;
+  --color-warning-soft: #fffbeb;
+  --color-error: #ef4444;
+  --color-error-soft: #fef2f2;
+  --color-info: #3b82f6;
+  --color-info-soft: #eff6ff;
+
+  /* ---- Brand accent (used sparingly — inline links, highlights) ---- */
+  --color-accent: #3b82f6;
+
+  /* ---- Badge pastels (avatar fills, category tags — never on CTAs) ---- */
+  --color-badge-orange: #fb923c;
+  --color-badge-pink: #ec4899;
+  --color-badge-violet: #8b5cf6;
+  --color-badge-emerald: #34d399;
+
+  /* ---- Semantic aliases (author against these) ---- */
+  --text-heading: var(--color-ink);
+  --text-body: var(--color-body);
+  --text-muted: var(--color-muted);
+  --text-link: var(--color-ink);
+  --surface-page: var(--color-canvas);
+  --surface-card: var(--color-surface-card);
+  --surface-sunken: var(--color-surface-soft);
+  --border-default: var(--color-hairline);
+  --border-strong: var(--color-ink);
+  --focus-ring: rgba(17, 17, 17, 0.35);
+}

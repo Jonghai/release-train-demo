@@ -1,0 +1,46 @@
+:root {
+  /* ---- Font families ---- */
+  --font-sans: 'Pretendard Variable', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-display: 'Pretendard Variable', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  /* ---- Scale base ----
+     Every size below is rem against the document root (browser default 16px).
+     We deliberately do NOT set `html { font-size }` — leaving it alone means a
+     user who raises their browser font size scales the whole system with them.
+     To scale a subtree instead, set `font-size` on a wrapper and use em there.
+     Tracking is in em so it stays proportional at any size. */
+  --font-size-base: 1rem; /* 16px — reference for the ratios below */
+
+  /* ---- Weights ---- */
+  --weight-regular: 400; /* @kind other */
+  --weight-medium: 500; /* @kind other */
+  --weight-semibold: 600; /* @kind other */
+  --weight-bold: 700; /* @kind other */
+
+  /* ---- Display scale (Pretendard 600, negative tracking) ---- */
+  --display-xl-size: 4rem;      /* 64px */ --display-xl-lh: 1.05; /* @kind other */ --display-xl-ls: -0.03125em; /* @kind other */
+  --display-lg-size: 3rem;      /* 48px */ --display-lg-lh: 1.1;  /* @kind other */ --display-lg-ls: -0.03125em; /* @kind other */
+  --display-md-size: 2.25rem;   /* 36px */ --display-md-lh: 1.15; /* @kind other */ --display-md-ls: -0.0278em;  /* @kind other */
+  --display-sm-size: 1.75rem;   /* 28px */ --display-sm-lh: 1.2;  /* @kind other */ --display-sm-ls: -0.0179em;  /* @kind other */
+
+  /* ---- Title scale (600, near-zero tracking) ---- */
+  --title-lg-size: 1.375rem;    /* 22px */ --title-lg-lh: 1.3; /* @kind other */ --title-lg-ls: -0.0136em; /* @kind other */
+  --title-md-size: 1.125rem;    /* 18px */ --title-md-lh: 1.4; /* @kind other */ --title-md-ls: 0;         /* @kind other */
+  --title-sm-size: 1rem;        /* 16px */ --title-sm-lh: 1.4; /* @kind other */ --title-sm-ls: 0;         /* @kind other */
+
+  /* ---- Body scale (400) ---- */
+  --body-md-size: 1rem;         /* 16px */ --body-md-lh: 1.5; /* @kind other */
+  --body-sm-size: 0.875rem;     /* 14px */ --body-sm-lh: 1.5; /* @kind other */
+  --caption-size: 0.8125rem;    /* 13px */ --caption-lh: 1.4; /* @kind other */  /* weight 500 */
+
+  /* ---- Utility ---- */
+  --code-size: 0.875rem;        /* 14px */ --code-lh: 1.5; /* @kind other */
+  --control-size: 0.875rem;     /* 14px — input, select, textarea */
+  --button-size: 0.875rem;      /* 14px — weight 600, lh 1 */
+  --button-size-sm: 0.8125rem;  /* 13px */
+  --button-size-lg: 0.9375rem;  /* 15px */
+  --nav-link-size: 0.875rem;    /* 14px — weight 500 */
+  --label-size: 0.875rem;       /* 14px — field labels, checkbox/radio/switch text */
+  --overline-size: 0.75rem;     /* 12px — uppercase eyebrow labels */
+}

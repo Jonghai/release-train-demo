@@ -1,0 +1,10 @@
+/* Pretendard Variable — primary UI + display typeface (OFL, Kil Hyung-jin) */
+@font-face {
+  font-family: 'Pretendard Variable';
+  font-weight: 45 920;
+  font-style: normal;
+  font-display: swap;
+  src: url('../assets/fonts/PretendardVariable.woff2') format('woff2-variations');
+}
+
+/* Code / tabular specimens use the local system monospace stack. */
